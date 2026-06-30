@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Controllers\SitemapController;
+use Illuminate\Support\Facades\Route;
+
+Route::livewire('/', 'pages::home')->name('home');
+
+Route::livewire('/blog', 'pages::blog.index')->name('blog.index');
+Route::livewire('/blog/{slug}', 'pages::blog.show')
+    ->where('slug', '[a-z0-9-]+')
+    ->name('blog.show');
+
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
+
+    Route::livewire('/locations', 'pages::admin.locations.index')->name('locations.index');
+    Route::livewire('/locations/create', 'pages::admin.locations.edit')->name('locations.create');
+    Route::livewire('/locations/{location}/edit', 'pages::admin.locations.edit')->name('locations.edit');
+
+    Route::livewire('/categories', 'pages::admin.categories.index')->name('categories.index');
+    Route::livewire('/categories/create', 'pages::admin.categories.edit')->name('categories.create');
+    Route::livewire('/categories/{category}/edit', 'pages::admin.categories.edit')->name('categories.edit');
+
+    Route::livewire('/services', 'pages::admin.services.index')->name('services.index');
+    Route::livewire('/services/create', 'pages::admin.services.edit')->name('services.create');
+    Route::livewire('/services/{service}/edit', 'pages::admin.services.edit')->name('services.edit');
+
+    Route::livewire('/landings', 'pages::admin.landings.index')->name('landings.index');
+    Route::livewire('/landings/matrix', 'pages::admin.landings.matrix')->name('landings.matrix');
+    Route::livewire('/landings/create', 'pages::admin.landings.edit')->name('landings.create');
+    Route::livewire('/landings/{landing}/edit', 'pages::admin.landings.edit')->name('landings.edit');
+
+    Route::livewire('/blog', 'pages::admin.blog.index')->name('blog.index');
+    Route::livewire('/blog/create', 'pages::admin.blog.edit')->name('blog.create');
+    Route::livewire('/blog/{post}/edit', 'pages::admin.blog.edit')->name('blog.edit');
+
+    Route::livewire('/leads', 'pages::admin.leads.index')->name('leads.index');
+    Route::livewire('/leads/{lead}', 'pages::admin.leads.show')->name('leads.show');
+
+    Route::livewire('/pages', 'pages::admin.pages.index')->name('pages.index');
+    Route::livewire('/pages/create', 'pages::admin.pages.edit')->name('pages.create');
+    Route::livewire('/pages/{page}/edit', 'pages::admin.pages.edit')->name('pages.edit');
+});
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
+Route::get('/sitemap-landings.xml', [SitemapController::class, 'landings'])->name('sitemap.landings');
+Route::get('/sitemap-blog.xml', [SitemapController::class, 'blog'])->name('sitemap.blog');
+
+// Programmatic landings — must stay last so /, /admin, /blog, Fortify-named routes
+// and sitemap routes are matched first.
+Route::livewire('/{slug}', 'pages::landing')
+    ->where('slug', '[a-z0-9-]+')
+    ->name('landing');
