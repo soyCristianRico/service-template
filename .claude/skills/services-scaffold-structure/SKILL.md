@@ -1,0 +1,53 @@
+---
+name: services-scaffold-structure
+description: Generar un seeder de Laravel que replica la estructura base de la web origen (árbol de categorías y ubicaciones + registros vacíos de servicios, landings y páginas) para migrarla a producción. Segundo paso (global) del clonado.
+disable-model-invocation: true
+allowed-tools: Read, Write, Edit, Bash
+---
+
+# Services · Replicar estructura base
+
+Convertir el inventario en la **estructura** del site: un seeder de Laravel con el
+árbol y los registros esqueleto, sin contenido final. El contenido real lo rellena
+`/services-clone-page` página a página. El diseño va en `/services-extract-design`.
+
+Entrada: `storage/app/clone/inventory.json`. Salida: un seeder en
+`database/seeders/` (p. ej. `CloneStructureSeeder.php`) reproducible en local y en
+producción.
+
+## Qué crea (solo estructura)
+
+En orden de dependencias:
+1. **Categorías** — árbol (raíz primero, luego hijas por `parent_id`).
+2. **Servicios** — registro por servicio en su categoría, con `custom_fields`
+   declarados pero vacíos.
+3. **Ubicaciones** — árbol país → región → provincia → ciudad → distrito.
+4. **Landings** — categoría×ubicación (según el patrón A/B/C del mapa), sin copy.
+5. **Páginas** — estáticas (aviso legal, gracias, sobre nosotros, contacto), sin copy.
+
+Slugs definitivos desde el inicio (los usa `/services-clone-page` para localizar
+cada registro). Nada de blog aquí: las entradas se crean con su contenido.
+
+## Proceso
+
+### 1 — Leer inventario
+Cargar `inventory.json` y resolver el árbol (padres antes que hijos).
+
+### 2 — Generar el seeder
+Escribir el seeder idempotente (upsert por slug, re-ejecutable sin duplicar) que
+inserta las 5 entidades como estructura vacía. Reflejar el estado activo/inactivo
+del origen.
+
+### 3 — Sembrar y comprobar en local
+`php artisan db:seed --class=CloneStructureSeeder`. Verificar conteos por entidad
+contra el inventario y que el árbol quede bien enlazado.
+
+### 4 — Reportar
+Conteo creado por entidad y ruta del seeder. Recordar que migrar a producción =
+correr el mismo seeder allí. Siguiente paso: `/services-extract-design`.
+
+## Guardarraíles
+
+- Solo estructura: sin copy, sin meta final. El relleno es de `/services-clone-page`.
+- Seeder idempotente: re-ejecutar no duplica.
+- No fabricar entidades que no estén en el inventario.
